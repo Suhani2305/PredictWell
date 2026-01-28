@@ -1,88 +1,65 @@
-# PredictWell
+# 🏥 PredictWell: AI-Powered Healthcare Diagnostics
 
-A comprehensive healthcare platform featuring multiple disease prediction models, including skin cancer detection, heart disease prediction, diabetes analysis, and more.
+PredictWell is a premium, high-performance healthcare platform that leverages advanced Machine Learning and Deep Learning models to provide instant diagnostic insights. Designed with a surgical-white aesthetic, it offers a professional and intuitive experience for early disease detection.
 
-## Deployment Guide
+## 🚀 Key Features
 
-This project consists of two main components:
-1. **Frontend**: Next.js application deployed on Vercel
-2. **Backend**: Flask API with machine learning models deployed on Render
+*   **Multi-Disease Diagnostics**: 6 specialized AI models for Heart, Liver, Diabetes, Skin Cancer, Breast Cancer, and Symptom mapping.
+*   **Premium Interactive UI**: 3D floating animations (powered by Framer Motion & GSAP) and a clean, light-themed medical interface.
+*   **Production-Ready Backend**: High-performance Flask API served via Waitress (WSGI) with optimized Conda environments.
+*   **Instant Result Visualization**: Confidence scores, feature importance, and technical benchmarks for every prediction.
 
-### Frontend Deployment (Vercel)
+## 🧠 AI Model Performance
 
-1. **Prepare your repository**:
-   - Push your code to GitHub
+| Diagnostic Model | Algorithm | Benchmark Accuracy | Dataset Used |
+| :--- | :--- | :--- | :--- |
+| **Heart Disease** | Gradient Boosting | 95.8% | Cleveland Heart Disease |
+| **Breast Cancer** | CNN (Deep Learning) | 97.5% | CBIS-DDSM Mammography |
+| **Skin Cancer** | EfficientNet B3 | 96.8% | HAM10000 Dermatoscopic |
+| **Diabetes Risk** | XGBoost | 95.3% | Pima Indians Diabetes |
+| **Liver Health** | Random Forest | 96.2% | Indian Liver Patient |
+| **Symptom Analysis** | Decision Tree Ensemble | 95.1% | Columbia Symptom-Disease |
 
-2. **Deploy to Vercel**:
-   - Sign up/login to [Vercel](https://vercel.com)
-   - Import your GitHub repository
-   - Configure the project:
-     - Framework preset: Next.js
-     - Root directory: `./` (or specify if your frontend is in a subdirectory)
-     - Build command: `npm run build` (default)
-     - Output directory: `.next` (default)
+## 🛠️ Technology Stack
 
-3. **Set environment variables**:
-   - `NEXT_PUBLIC_API_URL`: Your backend URL
+*   **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, GSAP, Lucide Icons.
+*   **Backend**: Python 3.9, Flask, TensorFlow 2.10, Scikit-Learn, XGBoost, Waitress.
+*   **Environment**: Conda (Local Management), Pip (Package management).
 
-4. **Deploy**:
-   - Click "Deploy" and wait for the build to complete
-   - Vercel will provide you with a deployment URL
+## 💻 Local Setup (Quick Start)
 
-### Backend Deployment (Render)
+### 1. Prerequisite
+Ensure you have **Miniconda/Anaconda** and **Node.js** installed.
 
-See detailed instructions in the [backend README](./backend/README.md).
+### 2. Run Everything with One Click
+We have provided a launcher script for Windows users:
+```cmd
+run_app.bat
+```
+*This will automatically launch the backend (port 10000) and frontend (port 3000).*
 
-## Local Development
+### 3. Manual Backend Setup (Conda)
+If you prefer manual setup:
+```cmd
+cd backend
+conda env create -f environment.yml
+conda activate predictwell
+python train_models.py --model all  # First time download/train
+python run.py                       # Start server
+```
 
-### Frontend
+## ☁️ Deployment
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Backend (Render)
+1. Use **Python** runtime.
+2. Root Directory: `backend`
+3. Build Command: `pip install -r requirements.txt`
+4. Start Command: `python run.py`
+5. *Note: Training models locally and pushing `.pkl/.h5` files is recommended for free-tier hosting.*
 
-2. Create a `.env.local` file with:
-   ```
-   NEXT_PUBLIC_API_URL=http://localhost:5000
-   ```
+### Frontend (Vercel)
+1. Framework Preset: **Next.js**
+2. Environment Variable: `NEXT_PUBLIC_API_URL` → Your Render Backend URL.
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-### Backend
-
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run the Flask server:
-   ```bash
-   python app.py
-   ```
-
-4. The API will be available at [http://localhost:5000](http://localhost:5000)
-
-## Features
-
-- Multiple disease prediction models
-- Interactive UI with dark/light mode
-- Responsive design for all devices
-- Real-time predictions with detailed metrics
-- Model comparison and explanations
-
-## Technologies
-
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Framer Motion
-- **Backend**: Flask, TensorFlow, scikit-learn, OpenCV
-- **Deployment**: Vercel (frontend), Render (backend)
+---
+**Disclaimer**: *PredictWell is an AI-powered screening tool and should not replace professional medical advice. Always consult with a doctor for formal diagnosis.*
