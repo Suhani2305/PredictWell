@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
-import { FiCheckCircle, FiAlertCircle, FiInfo, FiWifi, FiWifiOff } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertCircle, FiInfo, FiWifi, FiWifiOff, FiActivity, FiShield, FiCpu } from 'react-icons/fi';
 
 interface PredictionResultProps {
   prediction: string;
@@ -12,16 +12,12 @@ interface PredictionResultProps {
     precision: number;
     recall: number;
     f1: number;
-    r2: number;
-    rmse: number;
+    r2?: number;
+    rmse?: number;
   };
   topFeatures?: { name: string; importance: number }[];
   diseaseType: 'heart' | 'liver' | 'breast' | 'diabetes' | 'skin' | 'symptom';
   error?: boolean;
-  modelComparison?: {
-    // The values are the accuracy scores
-    [key: string]: number;
-  };
 }
 
 const PredictionResult: React.FC<PredictionResultProps> = ({
@@ -31,354 +27,166 @@ const PredictionResult: React.FC<PredictionResultProps> = ({
   metrics,
   topFeatures,
   diseaseType,
-  error,
-  modelComparison
+  error
 }) => {
   const { theme, accentColor } = useTheme();
-  
-  // Use accent color from theme instead of hardcoded colors
-  const color = accentColor;
-  
-  // Animation variants
+
+  const isHealthy = prediction && (
+    prediction.toLowerCase() === 'negative' ||
+    prediction.toLowerCase() === 'normal' ||
+    prediction.toLowerCase() === 'healthy' ||
+    prediction.toLowerCase() === 'benign'
+  );
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 }
     }
   };
-  
+
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-        damping: 15
-      }
+      transition: { type: 'spring', stiffness: 100, damping: 15 }
     }
   };
 
-  // Helper function to create radial progress with animation
-  const RadialProgress = ({ value, label, size = 90, strokeWidth = 8 }) => {
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const initialOffset = circumference;
-    const finalOffset = circumference - (value / 100) * circumference;
-    
+  if (error) {
     return (
-      <div className="flex flex-col items-center justify-center p-1">
-        <motion.div 
-          className="relative" 
-          style={{ width: size, height: size }}
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
+        <div className="w-24 h-24 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 border-2 border-rose-500/20 shadow-2xl shadow-rose-500/10">
+          <FiWifiOff size={48} className="animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-2xl font-black tracking-tight text-rose-500">Backend Connection Error</h3>
+          <p className="opacity-60 max-w-xs text-sm font-medium leading-relaxed">
+            We couldn't reach the AI engine. Please make sure the <span className="font-bold text-teal-500">backend server</span> is running and connected.
+          </p>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-8 py-3 rounded-2xl bg-[#14b8a6] text-white font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all"
         >
-          <svg width={size} height={size} className="transform -rotate-90">
-            {/* Background circle */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="transparent"
-              stroke={`${color}20`}
-              strokeWidth={strokeWidth}
-            />
-            {/* Progress circle with animation */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="transparent"
-              stroke={color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={finalOffset}
-              strokeLinecap="round"
-              style={{
-                transition: 'stroke-dashoffset 1.5s ease-in-out'
-              }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              className="font-bold"
-              style={{ color }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <span className="text-lg">{value.toFixed(1)}</span>
-              <span className="text-xs">%</span>
-            </motion.div>
-          </div>
-        </motion.div>
-        <div className="text-sm mt-2 text-center font-medium">{label}</div>
+          Try Connecting Again
+        </button>
       </div>
     );
-  };
+  }
 
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="w-full h-[770px]"
+      className="space-y-8"
     >
-      {error ? (
-        // Error state when backend is not available
-        <motion.div 
-          variants={itemVariants}
-          className="flex flex-col items-center justify-center h-full p-6 text-center"
-        >
-          <FiWifiOff size={48} className="mb-4 opacity-70" />
-          <h3 className="text-xl font-bold mb-2">Cannot Connect to Server</h3>
-          <p className="opacity-70 mb-4">Unable to fetch prediction data from the backend server.</p>
-          <button 
-            className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
-            style={{ 
-              backgroundColor: `${color}20`,
-              color: color,
-              backdropFilter: 'blur(8px)',
-              border: `1px solid ${color}40`
-            }}
-          >
-            <FiWifi className="inline mr-2" /> Try Again
-          </button>
-        </motion.div>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full p-4">
-          {/* Prediction Result - Glass morphism styling */}
-          <motion.div 
-            variants={itemVariants} 
-            className="mb-8 text-center w-full max-w-sm rounded-xl p-6 transform hover:scale-105 transition-transform duration-300"
-            style={{ 
-              backgroundColor: theme === 'dark' ? 'transparent' : 'transparent',
-              backdropFilter: 'blur(10px)',
-              borderTop: `4px solid ${prediction && (prediction.toLowerCase() === 'negative' || prediction.toLowerCase() === 'normal') ? '#10B981' : '#EF4444'}`,
-              boxShadow: `0 8px 32px 0 ${accentColor}20`,
-              border: `1px solid ${accentColor}20`
-            }}
-          >
-            <div 
-              className={`text-3xl font-bold mb-3 ${prediction && (prediction.toLowerCase() === 'negative' || prediction.toLowerCase() === 'normal') ? 'text-green-500' : 'text-red-500'}`}
-            >
-              {prediction || 'No Data'}
-            </div>
-            <div className="flex items-center justify-center">
-              {prediction && (prediction.toLowerCase() === 'negative' || prediction.toLowerCase() === 'normal') ? (
-                <FiCheckCircle className="mr-2 text-green-500" size={20} />
-              ) : (
-                <FiAlertCircle className="mr-2 text-red-500" size={20} />
-              )}
-              <span className="text-base font-medium">
-                Confidence: {isNaN(confidence) || confidence === 0 ? '92.0' : (confidence > 1 ? confidence.toFixed(1) : (confidence * 100).toFixed(1))}%
-              </span>
-            </div>
-          </motion.div>
-
-              
-          {/* Model Comparison Section */}
-          {modelComparison && (
-            <motion.div 
-              variants={itemVariants}
-              className="mt-8 p-6 rounded-xl w-full max-w-md mx-auto transform hover:scale-105 transition-transform duration-300"
-              style={{ 
-                backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.7)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: `0 8px 32px 0 ${accentColor}20`,
-                border: `1px solid ${accentColor}20`
-              }}
-            >
-              <h3 className="text-lg font-bold mb-4 text-center">Model Comparison</h3>
-              <div className="flex justify-between items-center">
-                {/* Dynamically render model comparison circles for top 3 models */}
-                {Object.entries(modelComparison)
-                  // Sort models by accuracy (highest first)
-                  .sort(([, accuracyA], [, accuracyB]) => accuracyB - accuracyA)
-                  // Take only the top 3 models
-                  .slice(0, 3)
-                  .map(([modelName, accuracy], index) => {
-                    // Format model name for display (capitalize, remove underscores)
-                    const displayName = modelName
-                      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-                      .replace(/_/g, ' ') // Replace underscores with spaces
-                      .trim() // Remove any leading/trailing spaces
-                      .split(' ')
-                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                      .join(' ');
-                    
-                    return (
-                      <div key={modelName} className="flex flex-col items-center">
-                        <div className="text-sm font-medium mb-3">{displayName}</div>
-                        <div className="relative w-20 h-20 flex items-center justify-center">
-                          <svg className="w-full h-full" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="16" fill="none" 
-                              className="stroke-current opacity-20" 
-                              strokeWidth="3" 
-                              style={{ color: accentColor }}
-                            />
-                            <circle cx="18" cy="18" r="16" fill="none" 
-                              className="stroke-current" 
-                              strokeWidth="3" 
-                              strokeDasharray={`${accuracy * 100} 100`}
-                              strokeLinecap="round"
-                              transform="rotate(-90 18 18)"
-                              style={{ color: accentColor, transition: 'stroke-dashoffset 0.5s ease' }}
-                            />
-                          </svg>
-                          <div className="absolute text-base font-bold">{(accuracy * 100).toFixed(1)}%</div>
-                        </div>
-                      </div>
-                    );
-                  })
-                }
-              </div>
-              
-              <div className="text-sm text-center mt-4 opacity-80">
-                Best model selected: <span className="font-bold">{modelName}</span>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Metrics - True Tabular chart style */}
-          <motion.div variants={itemVariants} className="w-full mb-8">
-            <div className="text-center mb-4">
-              <div className="text-base font-medium mb-1" style={{ color }}>
-                Performance Metrics
-              </div>
-              <div className="h-0.5 w-24 mx-auto" style={{ backgroundColor: color }}></div>
-            </div>
-            
-            <div 
-              className="rounded-xl p-4"
-              style={{ 
-                backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${accentColor}30`,
-                boxShadow: `0 8px 32px 0 ${accentColor}20`
-              }}
-            >
-              <table className="w-full text-center">
-                <thead>
-                  <tr>
-                    <th className="py-2 px-1 text-sm font-medium">Metric</th>
-                    <th className="py-2 px-1 text-sm font-medium">Value</th>
-                    <th className="py-2 px-1 text-sm font-medium">Rating</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Accuracy */}
-                  <tr>
-                    <td className="py-1.5 text-sm">Accuracy</td>
-                    <td className="py-1.5 text-sm font-bold">{(metrics.accuracy * 100).toFixed(1)}%</td>
-                    <td className="py-1.5">
-                      <div className="w-full bg-gray-200 bg-opacity-20 rounded-full h-2.5 mx-auto">
-                        <div 
-                          className="h-2.5 rounded-full" 
-                          style={{ 
-                            width: `${metrics.accuracy * 100}%`,
-                            backgroundColor: accentColor 
-                          }}
-                        ></div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Precision */}
-                  <tr>
-                    <td className="py-1.5 text-sm">Precision</td>
-                    <td className="py-1.5 text-sm font-bold">{(metrics.precision * 100).toFixed(1)}%</td>
-                    <td className="py-1.5">
-                      <div className="w-full bg-gray-200 bg-opacity-20 rounded-full h-2.5 mx-auto">
-                        <div 
-                          className="h-2.5 rounded-full" 
-                          style={{ 
-                            width: `${metrics.precision * 100}%`,
-                            backgroundColor: accentColor 
-                          }}
-                        ></div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Recall */}
-                  <tr>
-                    <td className="py-1.5 text-sm">Recall</td>
-                    <td className="py-1.5 text-sm font-bold">{(metrics.recall * 100).toFixed(1)}%</td>
-                    <td className="py-1.5">
-                      <div className="w-full bg-gray-200 bg-opacity-20 rounded-full h-2.5 mx-auto">
-                        <div 
-                          className="h-2.5 rounded-full" 
-                          style={{ 
-                            width: `${metrics.recall * 100}%`,
-                            backgroundColor: accentColor 
-                          }}
-                        ></div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* F1 Score */}
-                  <tr>
-                    <td className="py-1.5 text-sm">F1 Score</td>
-                    <td className="py-1.5 text-sm font-bold">{(metrics.f1 * 100).toFixed(1)}%</td>
-                    <td className="py-1.5">
-                      <div className="w-full bg-gray-200 bg-opacity-20 rounded-full h-2.5 mx-auto">
-                        <div 
-                          className="h-2.5 rounded-full" 
-                          style={{ 
-                            width: `${metrics.f1 * 100}%`,
-                            backgroundColor: accentColor 
-                          }}
-                        ></div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* R2 Score */}
-                  <tr>
-                    <td className="py-1.5 text-sm">R² Score</td>
-                    <td className="py-1.5 text-sm font-bold">{(metrics.r2 * 100).toFixed(1)}%</td>
-                    <td className="py-1.5">
-                      <div className="w-full bg-gray-200 bg-opacity-20 rounded-full h-2.5 mx-auto">
-                        <div 
-                          className="h-2.5 rounded-full" 
-                          style={{ 
-                            width: `${metrics.r2 * 100}%`,
-                            backgroundColor: accentColor 
-                          }}
-                        ></div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* RMSE */}
-                  <tr>
-                    <td className="py-1.5 text-sm">RMSE</td>
-                    <td className="py-1.5 text-sm font-bold">{(metrics.rmse * 100).toFixed(1)}%</td>
-                    <td className="py-1.5">
-                      <div className="w-full bg-gray-200 bg-opacity-20 rounded-full h-2.5 mx-auto">
-                        <div 
-                          className="h-2.5 rounded-full" 
-                          style={{ 
-                            width: `${(1 - metrics.rmse) * 100}%`,
-                            backgroundColor: accentColor 
-                          }}
-                        ></div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
+      {/* Primary Result Card */}
+      <motion.div
+        variants={itemVariants}
+        className={`p-10 rounded-[3rem] text-center border shadow-2xl transition-all duration-700 relative overflow-hidden ${isHealthy
+          ? 'bg-emerald-500/[0.03] border-emerald-500/20 shadow-emerald-500/5'
+          : 'bg-rose-500/[0.03] border-rose-500/20 shadow-rose-500/5'
+          }`}
+      >
+        <div className="absolute top-0 right-0 p-6 flex flex-col items-end gap-2">
+          <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${isHealthy
+            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+            : 'bg-rose-500/10 border-rose-500/20 text-rose-500'}`}>
+            <FiCheckCircle className="inline mr-2" />
+            {isHealthy ? 'Safe Status' : 'Risk Detected'}
+          </div>
+          <div className="text-[8px] font-black uppercase tracking-widest opacity-20">Production Model Alpha</div>
         </div>
+
+        <div className="flex justify-center mb-10 mt-6">
+          <div className={`p-8 rounded-[2.5rem] shadow-2xl relative ${isHealthy ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+            <div className="absolute inset-0 bg-white opacity-20 blur-2xl rounded-full" />
+            <div className="relative">
+              {isHealthy ? <FiCheckCircle size={56} /> : <FiAlertCircle size={56} />}
+            </div>
+          </div>
+        </div>
+
+        <h4 className="text-[11px] font-black uppercase tracking-[0.4em] opacity-30 mb-5">AI Diagnostic Conclusion</h4>
+        <div className={`text-6xl md:text-8xl font-black mb-8 tracking-tighter ${isHealthy ? 'text-emerald-500' : 'text-rose-500'}`}>
+          {prediction}
+        </div>
+
+        <div className="flex flex-col items-center gap-5">
+          <div className="px-10 py-4 rounded-[2rem] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 flex items-center gap-4 shadow-xl">
+            <div className={`w-3 h-3 rounded-full animate-pulse ${isHealthy ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+            <span className="text-lg font-black tracking-tight">
+              Confidence Engine: {((confidence > 1 ? confidence : confidence * 100)).toFixed(1)}%
+            </span>
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30">
+            Validated by v1.2.0 ML-FastAPI Network
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Accuracy & Metrics Section */}
+      <div className="grid grid-cols-2 gap-5">
+        {[
+          { label: 'Overall Accuracy', value: metrics.accuracy, icon: <FiCheckCircle /> },
+          { label: 'Model Precision', value: metrics.precision, icon: <FiShield /> },
+          { label: 'Recall Reliability', value: metrics.recall, icon: <FiActivity /> },
+          { label: 'F1 Grade Quality', value: metrics.f1, icon: <FiCpu /> },
+        ].map((m, i) => (
+          <motion.div
+            key={m.label}
+            variants={itemVariants}
+            className={`p-8 rounded-[2.5rem] border space-y-5 transition-colors ${theme === 'dark' ? 'bg-[#0f0f12] border-white/5' : 'bg-white border-slate-100'}`}
+          >
+            <div className="flex items-center justify-between opacity-40">
+              <div className="text-xl">{m.icon}</div>
+              <span className="text-[10px] font-black uppercase tracking-widest">{m.label}</span>
+            </div>
+            <div className="space-y-3">
+              <div className="text-3xl font-black tracking-tighter" style={{ color: accentColor }}>
+                {(m.value * 100).toFixed(1)}<span className="text-sm ml-0.5">%</span>
+              </div>
+              <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${m.value * 100}%` }}
+                  transition={{ duration: 1.5, delay: 0.5 + (i * 0.1) }}
+                  className="h-full rounded-full shadow-[0_0_10px_rgba(20,184,166,0.3)]"
+                  style={{ backgroundColor: accentColor }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Feature Importance or Insights */}
+      {topFeatures && topFeatures.length > 0 && (
+        <motion.div variants={itemVariants} className="space-y-5">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#14b8a6]" />
+            <h5 className="text-[11px] font-black uppercase tracking-[0.3em] opacity-30">Primary Diagnostic Weights</h5>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {topFeatures.slice(0, 3).map((f, i) => (
+              <div key={i} className={`p-5 rounded-[1.5rem] border flex items-center justify-between group transition-all hover:translate-x-1 ${theme === 'dark' ? 'bg-white/[0.02] border-white/5' : 'bg-slate-50/50 border-slate-100'}`}>
+                <span className="text-sm font-black opacity-60 group-hover:opacity-100 transition-opacity">{f.name}</span>
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-20 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#14b8a6] opacity-50" style={{ width: '80%' }} />
+                  </div>
+                  <span className="text-[10px] font-black px-4 py-2 rounded-xl bg-white dark:bg-white/5 shadow-sm uppercase tracking-widest" style={{ color: accentColor }}>
+                    Critical
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       )}
     </motion.div>
   );

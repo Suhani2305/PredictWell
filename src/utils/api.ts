@@ -9,7 +9,7 @@ const getBackendUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  
+
   // Try common local development ports
   // Backend runs on port 5000 by default (or 10000 if PORT env var is set)
   if (typeof window !== 'undefined') {
@@ -18,7 +18,7 @@ const getBackendUrl = () => {
     if ((window as any).BACKEND_URL) {
       return (window as any).BACKEND_URL;
     }
-    
+
     // Try to detect if we're accessing from a network IP (not localhost)
     // If backend is running on network IP, try that too
     const hostname = window.location.hostname;
@@ -27,7 +27,7 @@ const getBackendUrl = () => {
       // This handles cases where frontend is accessed via IP like 192.168.1.5:3000
       return `http://${hostname}:5000`;
     }
-    
+
     // If we're on localhost but backend might be on network IP
     // Try to detect from window location (useful for development)
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -38,9 +38,9 @@ const getBackendUrl = () => {
       }
     }
   }
-  
-  // Default fallback to localhost:5000
-  return 'http://localhost:5000';
+
+  // Default fallback to localhost:10000
+  return 'http://localhost:10000';
 };
 
 const API_BASE_URL = getBackendUrl();
@@ -49,19 +49,19 @@ const API_BASE_URL = getBackendUrl();
 if (typeof window !== 'undefined') {
   console.log('🔗 Backend API URL:', API_BASE_URL);
   console.log('💡 To change it, set NEXT_PUBLIC_API_URL in .env.local or window.BACKEND_URL in browser console');
-  
+
   // Test backend connection on load and try multiple URLs if needed
   const testConnection = async (url: string) => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      const res = await fetch(`${url}/api/test`, { 
+
+      const res = await fetch(`${url}/api/test`, {
         method: 'GET',
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      
+
       if (res.ok) {
         const data = await res.json();
         console.log(`✅ Backend connection successful to ${url}!`, data);
@@ -73,19 +73,20 @@ if (typeof window !== 'undefined') {
     }
     return false;
   };
-  
+
   // Try multiple URLs to find the backend
   (async () => {
     const urlsToTry = [
       API_BASE_URL,
-      'http://192.168.1.5:5000',
+      'http://localhost:10000',
+      'http://127.0.0.1:10000',
       'http://localhost:5000',
       'http://127.0.0.1:5000'
     ];
-    
+
     // Remove duplicates
     const uniqueUrls = [...new Set(urlsToTry)];
-    
+
     for (const url of uniqueUrls) {
       const connected = await testConnection(url);
       if (connected) {
@@ -140,7 +141,7 @@ api.interceptors.response.use(
       code: error.code,
       response: error.response?.data
     });
-    
+
     // If connection error, suggest checking backend
     if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
       console.error('💡 Backend connection failed. Please check:');
@@ -149,7 +150,7 @@ api.interceptors.response.use(
       console.error('   3. Firewall allows the connection');
       console.error('   Try setting NEXT_PUBLIC_API_URL in .env.local file');
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -161,11 +162,11 @@ export const predictDisease = {
     try {
       console.log('Heart disease API call starting with data:', data);
       console.log('API base URL:', API_BASE_URL);
-      
+
       // Make direct fetch call instead of using axios to debug
       const url = `${API_BASE_URL}/api/predict/heart`;
       console.log('Full API URL:', url);
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -173,11 +174,11 @@ export const predictDisease = {
         },
         body: JSON.stringify(data),
       });
-      
+
       console.log('API response status:', response.status);
       const responseData = await response.json();
       console.log('API response data:', responseData);
-      
+
       return responseData;
     } catch (error) {
       console.error('Error predicting heart disease:', error);
@@ -209,7 +210,7 @@ export const predictDisease = {
     try {
       // Add logging to debug the API call
       console.log('Making breast cancer prediction API call to:', `${API_BASE_URL}/api/predict/breast-cancer`);
-      
+
       const response = await api.post('/api/predict/breast-cancer', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -277,7 +278,7 @@ export const predictDisease = {
       // Add logging to debug the API call
       console.log('Making symptom disease prediction API call to:', `${API_BASE_URL}/api/predict/symptom`);
       console.log('Symptoms data:', data);
-      
+
       const response = await api.post('/api/predict/symptom', data);
       return response.data;
     } catch (error) {

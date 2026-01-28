@@ -38,6 +38,7 @@ declare module 'axios' {
   }
 
   interface AxiosInstance {
+    interceptors: any;
     (config: AxiosRequestConfig): Promise<AxiosResponse>;
     (url: string, config?: AxiosRequestConfig): Promise<AxiosResponse>;
     defaults: AxiosRequestConfig;
