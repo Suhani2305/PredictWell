@@ -51,8 +51,8 @@ class DiabetesModel(BaseModel):
         self.mappings = {}
         
         # Model paths
-        self.model_dir = os.path.join('trained_models', 'diabetes')
-        self.model_path = os.path.join(self.model_dir, 'diabetes_model.pkl')
+        self.model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'trained_models', 'diabetes_disease_best_model')
+        self.model_path = os.path.join(self.model_dir, 'model.pkl')
         self.metrics_path = os.path.join(self.model_dir, 'metrics.json')
         self.preprocessor_path = os.path.join(self.model_dir, 'preprocessor.pkl')
         

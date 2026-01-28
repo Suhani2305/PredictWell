@@ -26,8 +26,9 @@ class SkinCancerModel(BaseModel):
                            'Benign keratosis-like lesions', 'Dermatofibroma', 
                            'Melanocytic nevi', 'Melanoma', 'Vascular lesions']
         # Paths to best saved model and metrics
-        self.model_path = os.path.join('trained_models', 'skin_cancer_best_model', 'skin_cancer_model.h5')
-        self.metrics_path = os.path.join('trained_models', 'skin_cancer_best_model', 'skin_cancer_metrics.pkl')
+        self.model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'trained_models', 'skin_cancer_best_model')
+        self.model_path = os.path.join(self.model_dir, 'skin_cancer_model.h5')
+        self.metrics_path = os.path.join(self.model_dir, 'skin_cancer_metrics.pkl')
         
         # Try to load pre-trained model and metrics
         if os.path.exists(self.model_path):

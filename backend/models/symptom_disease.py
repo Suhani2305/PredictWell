@@ -12,11 +12,12 @@ from .base_model import BaseModel
 
 class SymptomDiseaseModel(BaseModel):
     def __init__(self):
-        super().__init__('symptom_disease')
-        self.model_path = os.path.join('trained_models', 'symptom_disease_best_model', 'symptom_disease_model.h5')
-        self.metrics_path = os.path.join('trained_models', 'symptom_disease_best_model', 'symptom_disease_metrics.pkl')
-        self.label_encoders_path = os.path.join('trained_models', 'symptom_disease_best_model', 'symptom_disease_label_encoders.pkl')
-        self.unique_symptoms_path = os.path.join('trained_models', 'symptom_disease_best_model', 'symptom_disease_unique_symptoms.pkl')
+        # Paths to best saved model and metrics
+        self.model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'trained_models', 'symptom_disease_best_model')
+        self.model_path = os.path.join(self.model_dir, 'symptom_disease_model.h5')
+        self.metrics_path = os.path.join(self.model_dir, 'symptom_disease_metrics.pkl')
+        self.label_encoders_path = os.path.join(self.model_dir, 'symptom_disease_label_encoders.pkl')
+        self.unique_symptoms_path = os.path.join(self.model_dir, 'symptom_disease_unique_symptoms.pkl')
         
         # Try to load pre-trained model and encoders
         if os.path.exists(self.model_path) and os.path.exists(self.label_encoders_path) and os.path.exists(self.unique_symptoms_path):
