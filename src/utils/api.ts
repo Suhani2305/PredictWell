@@ -39,8 +39,8 @@ const getBackendUrl = () => {
     }
   }
 
-  // Default fallback to localhost:10000
-  return 'http://localhost:10000';
+  // Default fallback to Render URL
+  return 'https://predictwell-wiia.onrender.com';
 };
 
 const API_BASE_URL = getBackendUrl();
